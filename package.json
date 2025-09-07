@@ -1,6 +1,7 @@
 {
   "name": "yanzhi-pk",
   "version": "1.0.0",
+  "type": "module",
   "description": "A face rating application with Elo scoring system",
   "main": "index.js",
   "scripts": {

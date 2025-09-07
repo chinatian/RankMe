@@ -128,7 +128,7 @@
               
               <div class="text-right">
                 <div class="text-2xl font-bold gradient-text">#{{ userRank }}</div>
-                <div class="text-white/80 text-sm">{{ userStore.userRating.toFixed(1)} 分</div>
+                <div class="text-white/80 text-sm">{{ userStore.userRating.toFixed(1) }} 分</div>
               </div>
             </div>
           </div>
