@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="颜值对决，看看你在大家眼中排第几" />
+  <meta name="keywords" content="颜值,打分,排名,PK" />
+  <title>颜值PK - 颜值对决，看看你排第几</title>
+  
+  <!-- PWA设置 -->
+  <meta name="theme-color" content="#8A2BE2" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="颜值PK" />
+  
+  <!-- 字体预加载 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* 防止页面跳动 */
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', 'PingFang SC', 'Roboto', sans-serif;
+      background: #121212;
+      color: white;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    /* 加载动画 */
+    .loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #8A2BE2 0%, #FF007F 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    
+    .loading-logo {
+      font-size: 2rem;
+      font-weight: 700;
+      color: white;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    
+    /* 防止选择文本 */
+    .no-select {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    
+    /* 隐藏滚动条但保持功能 */
+    ::-webkit-scrollbar {
+      display: none;
+    }
+    
+    /* 针对移动端的优化 */
+    @media (max-width: 768px) {
+      body {
+        font-size: 16px; /* 防止iOS缩放 */
+      }
+    }
+  </style>
+</head>
+<body class="no-select">
+  <!-- 加载屏幕 -->
+  <div id="loading" class="loading-screen">
+    <div class="loading-logo">颜值PK</div>
+  </div>
+  
+  <div id="app"></div>
+  <script type="module" src="/src/main.js"></script>
+  
+  <script>
+    // 隐藏加载屏幕
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        const loading = document.getElementById('loading');
+        if (loading) {
+          loading.style.opacity = '0';
+          loading.style.transition = 'opacity 0.5s ease';
+          setTimeout(() => {
+            loading.remove();
+          }, 500);
+        }
+      }, 1000);
+    });
+    
+    // 防止双击缩放
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', function (event) {
+      const now = (new Date()).getTime();
+      if (now - lastTouchEnd <= 300) {
+        event.preventDefault();
+      }
+      lastTouchEnd = now;
+    }, false);
+    
+    // 防止长按菜单
+    document.addEventListener('contextmenu', e => e.preventDefault());
+  </script>
+</body>
+</html>
