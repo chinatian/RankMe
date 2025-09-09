@@ -313,64 +313,63 @@
            @click="selectedPhoto = null">
         <div class="bg-dark-100 rounded-2xl p-6 max-w-sm w-full" @click.stop>
           <!-- 分享卡片预览 -->
-          <div ref="shareCardRef" class="bg-gradient-to-br from-dark-200 to-dark-300 rounded-xl p-6 mb-6 relative overflow-hidden">
+          <div ref="shareCardRef" class="share-card">
             <!-- 装饰背景 -->
-            <div class="absolute inset-0 opacity-10">
-              <div class="absolute -right-12 -top-12 w-48 h-48 bg-primary/30 rounded-full blur-2xl"></div>
-              <div class="absolute -left-12 -bottom-12 w-48 h-48 bg-primary/20 rounded-full blur-2xl"></div>
+            <div class="share-card-bg">
+              <div class="share-card-bg-circle share-card-bg-circle-1"></div>
+              <div class="share-card-bg-circle share-card-bg-circle-2"></div>
             </div>
             
             <!-- 内容区域 -->
-            <div class="relative">
-              <div class="aspect-square rounded-xl overflow-hidden mb-4 shadow-lg">
+            <div class="share-card-content">
+              <div class="share-card-image">
                 <img
                   :src="selectedPhoto?.url"
                   :alt="'照片 ' + selectedPhoto?.id"
-                  class="w-full h-full object-cover"
+                  crossorigin="anonymous"
                 />
               </div>
               
-              <div class="space-y-4">
+              <div class="share-card-info">
                 <!-- 评分 -->
-                <div class="flex justify-between items-center bg-dark-100/50 rounded-lg p-3">
-                  <span class="text-white/70">颜值评分</span>
-                  <div class="flex items-baseline">
-                    <span class="text-primary text-2xl font-bold">{{ formatRating(selectedPhoto?.eloScore) }}</span>
-                    <span class="text-white/50 ml-1">分</span>
+                <div class="share-card-score">
+                  <span class="share-card-label">颜值评分</span>
+                  <div class="share-card-value">
+                    <span class="share-card-number">{{ formatRating(selectedPhoto?.eloScore) }}</span>
+                    <span class="share-card-unit">分</span>
                   </div>
                 </div>
                 
                 <!-- 数据统计 -->
-                <div class="grid grid-cols-2 gap-3">
-                  <div class="bg-dark-100/50 rounded-lg p-3">
-                    <div class="text-white/70 text-sm mb-1">PK次数</div>
-                    <div class="text-white font-medium">{{ selectedPhoto?.totalMatches }}次</div>
+                <div class="share-card-stats">
+                  <div class="share-card-stat-item">
+                    <div class="share-card-stat-label">PK次数</div>
+                    <div class="share-card-stat-value">{{ selectedPhoto?.totalMatches }}次</div>
                   </div>
                   
-                  <div class="bg-dark-100/50 rounded-lg p-3">
-                    <div class="text-white/70 text-sm mb-1">胜率</div>
-                    <div class="text-white font-medium">{{ Math.round((selectedPhoto?.wins / selectedPhoto?.totalMatches) * 100) || 0 }}%</div>
+                  <div class="share-card-stat-item">
+                    <div class="share-card-stat-label">胜率</div>
+                    <div class="share-card-stat-value">{{ Math.round((selectedPhoto?.wins / selectedPhoto?.totalMatches) * 100) || 0 }}%</div>
                   </div>
                 </div>
 
                 <!-- 二维码区域 -->
-                <div class="flex items-center justify-center pt-2">
-                  <div class="bg-white rounded-lg p-2">
+                <div class="share-card-qr">
+                  <div class="share-card-qr-wrapper">
                     <QRCode 
                       :value="shareUrl"
                       :size="100"
                       level="M"
                       render-as="svg"
                       :margin="0"
-                      class="w-full h-full"
                     />
                   </div>
                 </div>
 
-                <div class="flex items-center justify-center space-x-2">
-                  <div class="h-[1px] flex-1 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-                  <div class="text-center text-xs text-white/50 px-3">比比谁更美</div>
-                  <div class="h-[1px] flex-1 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+                <div class="share-card-footer">
+                  <div class="share-card-divider"></div>
+                  <div class="share-card-footer-text">比比谁更美</div>
+                  <div class="share-card-divider"></div>
                 </div>
               </div>
             </div>
@@ -567,16 +566,33 @@ const downloadShareCard = async () => {
     const canvas = await html2canvas(shareCardRef.value, {
       backgroundColor: null,
       scale: 2, // 提高导出图片质量
+      useCORS: true, // 允许跨域图片
+      allowTaint: true, // 允许图片污染画布
+      logging: false, // 关闭日志
+      removeContainer: true, // 完成后移除临时容器
     })
     
-    const link = document.createElement('a')
-    link.download = `颜值PK-${formatRating(selectedPhoto.value?.eloScore)}分.png`
-    link.href = canvas.toDataURL('image/png')
-    link.click()
-    
-    selectedPhoto.value = null
-    notificationStore.showSuccess('图片已保存')
+    // 转换为Blob并创建下载链接
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        notificationStore.showError('生成图片失败')
+        return
+      }
+      
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.download = `颜值PK-${formatRating(selectedPhoto.value?.eloScore)}分.png`
+      link.href = url
+      link.click()
+      
+      // 清理URL
+      setTimeout(() => URL.revokeObjectURL(url), 100)
+      
+      selectedPhoto.value = null
+      notificationStore.showSuccess('图片已保存')
+    }, 'image/png')
   } catch (error) {
+    console.error(error)
     notificationStore.showError('保存失败')
   }
 }
@@ -591,5 +607,147 @@ const downloadShareCard = async () => {
 .slide-up-enter-from,
 .slide-up-leave-to {
   transform: translateY(100%);
+}
+
+.share-card {
+  background: linear-gradient(to bottom right, #1a1b1e, #2a2b2e);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.share-card-bg {
+  position: absolute;
+  inset: 0;
+  opacity: 0.1;
+}
+
+.share-card-bg-circle {
+  position: absolute;
+  width: 192px;
+  height: 192px;
+  border-radius: 9999px;
+  filter: blur(16px);
+}
+
+.share-card-bg-circle-1 {
+  top: -48px;
+  right: -48px;
+  background: rgba(99, 102, 241, 0.3);
+}
+
+.share-card-bg-circle-2 {
+  bottom: -48px;
+  left: -48px;
+  background: rgba(99, 102, 241, 0.2);
+}
+
+.share-card-content {
+  position: relative;
+}
+
+.share-card-image {
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.share-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.share-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.share-card-score {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(42, 43, 46, 0.5);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.share-card-label {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.share-card-value {
+  display: flex;
+  align-items: baseline;
+}
+
+.share-card-number {
+  color: #6366f1;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.share-card-unit {
+  color: rgba(255, 255, 255, 0.5);
+  margin-left: 4px;
+}
+
+.share-card-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.share-card-stat-item {
+  background: rgba(42, 43, 46, 0.5);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.share-card-stat-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.share-card-stat-value {
+  color: #fff;
+  font-weight: 500;
+}
+
+.share-card-qr {
+  display: flex;
+  justify-content: center;
+  padding-top: 8px;
+}
+
+.share-card-qr-wrapper {
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.share-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.share-card-divider {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
+}
+
+.share-card-footer-text {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  padding: 0 12px;
 }
 </style>

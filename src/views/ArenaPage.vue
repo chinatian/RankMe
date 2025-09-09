@@ -78,7 +78,7 @@
           <!-- 默认显示当前分类 -->
           <div class="flex items-center space-x-2 relative">
             <button
-              class="px-4 py-2 rounded-full text-sm font-medium bg-gradient-primary text-white"
+              class="px-4 py-2 rounded-full text-sm font-medium bg-dark-200 text-white"
             >
               {{ currentCategoryDisplay }}
             </button>
@@ -199,7 +199,7 @@
 
           <!-- VS指示器 -->
           <div class="flex-shrink-0 mx-4 md:mx-8 my-2 md:my-4">
-            <div class="w-10 h-10 md:w-16 md:h-16 bg-gradient-primary rounded-full flex items-center justify-center">
+            <div class="w-10 h-10 md:w-16 md:h-16 bg-dark-200 rounded-full flex items-center justify-center">
               <span class="text-white font-bold text-base md:text-lg">VS</span>
             </div>
           </div>
