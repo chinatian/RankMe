@@ -3,223 +3,146 @@
     <!-- 顶部导航 -->
     <div class="flex-shrink-0 p-4 bg-dark-100/50 backdrop-blur-sm border-b border-dark-300">
       <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2">
         <button
-          @click="$router.back()"
-          class="p-2 text-white/70 hover:text-white transition-colors"
-        >
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-          </svg>
-        </button>
+                  @click="$router.back()"
+                  class="p-2 text-white/70 hover:text-white transition-colors"
+                >
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                  </svg>
+                </button>
         
         <h1 class="text-xl font-bold text-white">个人中心</h1>
-        
+        </div>
+
         <button
-          @click="showSettings = !showSettings"
-          class="p-2 text-white/70 hover:text-white transition-colors"
-        >
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-          </svg>
-        </button>
+                @click="showUploadDialog = true"
+                class="px-4 py-2 bg-gradient-primary rounded-full flex items-center justify-center space-x-1.5
+                   shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-200
+                   active:scale-95 hover:-translate-y-0.5"
+              >
+                <span>+</span>
+                <span>上传照片</span>
+              </button>
+        
+        
+      
       </div>
     </div>
     
     <!-- 主要内容 -->
     <div class="flex-1 overflow-y-auto">
-      <!-- 用户照片和基本信息 -->
-      <div class="relative p-6">
-        <!-- 背景装饰 -->
-        <div class="absolute inset-0 bg-gradient-primary/10 rounded-b-3xl"></div>
+      <div class="max-w-[1024px] mx-auto">
+        <!-- 用户照片和基本信息 -->
+        <div class="relative p-6">
+          <!-- 背景装饰 -->
+          <div class="absolute inset-0 bg-gradient-primary/10 rounded-b-3xl"></div>
+          
+         
+        </div>
         
-        <div class="relative z-10 text-center">
-          <!-- 用户照片 -->
-          <div class="relative inline-block mb-4">
-            <div class="w-32 h-32 rounded-3xl overflow-hidden shadow-2xl ring-4 ring-white/10">
-              <img
-                v-if="user?.photo"
-                :src="user.photo"
-                :alt="'用户照片'"
-                class="w-full h-full object-cover"
-              />
-              <div v-else class="w-full h-full bg-dark-300 flex items-center justify-center">
-                <svg class="w-16 h-16 text-white/50" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                </svg>
+        <!-- 照片列表 -->
+        <div class="px-6 mb-6">
+          <div class=" p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-xl font-bold text-white flex items-center">
+              
+                我的照片
+              </h3>
+              
+              
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+              <div
+                v-for="photo in userPhotos"
+                :key="photo.id"
+                class="relative group"
+              >
+                <!-- 照片容器 -->
+                <div class="aspect-square rounded-xl overflow-hidden relative"
+                     @click="openShareCard(photo)">
+                  <img
+                    :src="photo.url"
+                    :alt="'照片 ' + photo.id"
+                    class="w-full h-full object-cover"
+                  />
+                  
+                  <!-- 左上角分数标签 - 仅在PK次数>=20时显示 -->
+                  <div
+                   
+                    class="absolute top-2 left-2 bg-primary/90 px-2 py-1 rounded-lg backdrop-blur-sm"
+                  >
+                    <span class="text-white font-bold">{{ formatRating(photo.eloScore) }}</span>
+                  </div>
+
+                  <!-- 右上角删除按钮 -->
+                  <button
+                    v-if="userPhotos.length > 1"
+                    @click.stop="confirmDeletePhoto(photo)"
+                    class="absolute top-2 right-2 w-8 h-8 bg-black/80 rounded-full 
+                           flex items-center justify-center text-white
+                           hover:bg-black/50 active:scale-95 z-10"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                  </button>
+
+                  <!-- PK次数不足遮罩 -->
+                  <div
+                    v-if="photo.totalMatches < 20"
+                    class="absolute inset-0 bg-black/50 flex items-center justify-center"
+                  >
+                    
+                  </div>
+                </div>
+
+                <!-- 照片数据 -->
+                <div class="mt-3 space-y-2">
+                  <!-- PK数据 -->
+                  <div class="flex justify-between items-center text-sm">
+                    <span class="text-white/70">PK次数</span>
+                    <span class="text-white font-medium">{{ photo.totalMatches }}次</span>
+                  </div>
+                  
+                  <!-- 胜率 -->
+                  <div class="flex justify-between items-center text-sm">
+                    <span class="text-white/70">胜率</span>
+                    <span class="text-white font-medium">{{ Math.round((photo.wins / photo.totalMatches) * 100) || 0 }}%</span>
+                  </div>
+
+                  <!-- 加速数据和按钮 -->
+                  <div class="flex justify-between items-center">
+                    <div class="text-sm">
+                      <span class="text-white/70">加速</span>
+                      <span class="text-white font-medium ml-1">{{ photo.acceleration || 0 }}x</span>
+                    </div>
+                    <button
+                      @click="acceleratePhoto(photo)"
+                      class="text-xs px-2.5 py-1 border border-primary text-primary hover:bg-primary/10 
+                             rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      :disabled="!userFuel"
+                    >
+                      去加速
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-            
-            <!-- 等级徽章 -->
-            <div class="absolute -bottom-2 -right-2 w-10 h-10 bg-gradient-primary rounded-full 
-                        flex items-center justify-center border-2 border-gray-900 shadow-lg">
-              <span class="text-white font-bold text-sm">{{ userLevel.level }}</span>
-            </div>
-          </div>
-          
-          <!-- 等级标题 -->
-          <div class="mb-6">
-            <h2 class="text-2xl font-bold gradient-text mb-1">{{ userLevel.title }}</h2>
-            <p class="text-white/60">加入于 {{ formatDate(user?.createdAt) }}</p>
           </div>
         </div>
-      </div>
-      
-      <!-- 分数展示 -->
-      <div class="px-6 mb-6">
-        <div class="card p-6">
-          <div class="text-center mb-6">
-            <div class="score-display mb-2">{{ userRating.toFixed(1) }}</div>
-            <p class="text-white/80 mb-4">当前颜值分数</p>
-            
-            <!-- 分数变化趋势 -->
-            <div v-if="user?.eloScore" class="text-sm text-white/60">
-              Elo: {{ user.eloScore }} 分
-              <span v-if="userRank" class="ml-2">排名: #{{ userRank }}</span>
-            </div>
-          </div>
-          
-          <!-- 进度条 -->
-          <div v-if="userStore.votesNeeded > 0" class="mb-6">
-            <div class="flex items-center justify-between text-sm text-white/70 mb-2">
-              <span>解锁分数进度</span>
-              <span>{{ 10 - userStore.votesNeeded }}/10</span>
-            </div>
-            <div class="w-full bg-dark-300 rounded-full h-3">
-              <div 
-                class="bg-gradient-primary h-3 rounded-full transition-all duration-500"
-                :style="{ width: `${((10 - userStore.votesNeeded) / 10) * 100}%` }"
-              ></div>
-            </div>
-            <p class="text-white/60 text-sm mt-2">
-              再为他人打分 {{ userStore.votesNeeded }} 次即可查看你的分数
-            </p>
-          </div>
-          
-          <!-- 快速操作 -->
-          <div class="grid grid-cols-2 gap-3">
-            <button
-              @click="$router.push('/arena')"
-              class="btn-primary flex items-center justify-center space-x-2"
-            >
-              <span>⚡</span>
-              <span>继续打分</span>
-            </button>
-            
-            <button
-              @click="$router.push('/leaderboard')"
-              class="btn-secondary flex items-center justify-center space-x-2"
-            >
-              <span>🏆</span>
-              <span>查看排名</span>
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      <!-- 统计数据 -->
-      <div class="px-6 mb-6">
-        <div class="grid grid-cols-2 gap-4">
-          <!-- 燃料 -->
-          <div class="card p-4 text-center">
-            <div class="text-2xl font-bold text-yellow-400 mb-1">{{ userFuel }}</div>
-            <div class="text-white/60 text-sm">燃料点数</div>
-          </div>
-          
-          <!-- 总投票数 -->
-          <div class="card p-4 text-center">
-            <div class="text-2xl font-bold text-blue-400 mb-1">{{ user?.totalVotes || 0 }}</div>
-            <div class="text-white/60 text-sm">获得投票</div>
-          </div>
-          
-          <!-- 胜率 -->
-          <div class="card p-4 text-center">
-            <div class="text-2xl font-bold text-green-400 mb-1">{{ winRate }}%</div>
-            <div class="text-white/60 text-sm">胜率</div>
-          </div>
-          
-          <!-- 总对决 -->
-          <div class="card p-4 text-center">
-            <div class="text-2xl font-bold text-purple-400 mb-1">{{ user?.totalMatches || 0 }}</div>
-            <div class="text-white/60 text-sm">总对决</div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- 成就徽章 -->
-      <div v-if="user?.badges && user.badges.length > 0" class="px-6 mb-6">
-        <div class="card p-6">
-          <h3 class="text-xl font-bold text-white mb-4 flex items-center">
-            <span class="mr-2">🏆</span>
-            成就徽章
-          </h3>
-          
-          <div class="grid grid-cols-3 gap-3">
-            <div
-              v-for="badge in user.badges.slice(0, 6)"
-              :key="badge.id"
-              class="text-center p-3 bg-dark-200/50 rounded-xl"
-            >
-              <div class="text-2xl mb-1">{{ badge.icon }}</div>
-              <div class="text-white/80 text-xs font-medium">{{ badge.title }}</div>
-            </div>
-            
-            <div
-              v-if="user.badges.length > 6"
-              class="text-center p-3 bg-dark-200/50 rounded-xl flex items-center justify-center"
-            >
-              <span class="text-white/60 text-sm">+{{ user.badges.length - 6 }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- 分数历史图表 -->
-      <div class="px-6 mb-6">
-        <div class="card p-6">
-          <h3 class="text-xl font-bold text-white mb-4 flex items-center">
-            <span class="mr-2">📈</span>
-            分数变化
-          </h3>
-          
-          <!-- 简单的分数历史显示 -->
-          <div class="h-32 flex items-end justify-between space-x-1">
-            <div
-              v-for="(point, index) in scoreHistory"
-              :key="index"
-              class="flex-1 bg-gradient-primary/30 rounded-t"
-              :style="{ height: `${(point / maxScore) * 100}%` }"
-            ></div>
-          </div>
-          
-          <div class="flex justify-between text-white/60 text-xs mt-2">
-            <span>7天前</span>
-            <span>今天</span>
-          </div>
-        </div>
-      </div>
-      
-      <!-- 操作按钮 -->
-      <div class="px-6 pb-6 space-y-4">
-        <button
-          @click="shareProfile"
-          class="w-full btn-secondary flex items-center justify-center space-x-2"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                  d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
-          </svg>
-          <span>分享我的档案</span>
-        </button>
         
-        <button
-          @click="showDeleteConfirm = true"
-          class="w-full bg-red-600/20 text-red-400 font-medium py-3 px-6 rounded-xl
-                 border border-red-600/30 transition-all hover:bg-red-600/30 active:scale-95"
-        >
-          删除账户
-        </button>
+  
+        
+   
+      
+        
+     
+        
+        
       </div>
     </div>
     
@@ -298,6 +221,187 @@
         </div>
       </div>
     </transition>
+
+    <!-- 上传照片对话框 -->
+    <transition name="fade">
+      <div v-if="showUploadDialog" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-6"
+           @click="showUploadDialog = false">
+        <div class="bg-dark-100 rounded-2xl p-6 max-w-sm w-full" @click.stop>
+          <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+            </div>
+            
+            <h3 class="text-xl font-bold text-white mb-2">上传新照片</h3>
+            <p class="text-white/70">
+              选择一张清晰的照片上传，建议使用正面照，光线充足的照片效果最佳。
+            </p>
+          </div>
+          
+          <input
+            ref="fileInput"
+            type="file"
+            accept="image/*"
+            class="hidden"
+            @change="handleFileSelect"
+          />
+          
+          <div class="space-y-4">
+            <button
+              @click="$refs.fileInput.click()"
+              class="w-full btn-primary flex items-center justify-center space-x-2"
+            >
+              <span>选择照片</span>
+            </button>
+            
+            <button
+              @click="showUploadDialog = false"
+              class="w-full btn-secondary"
+            >
+              取消
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- 删除照片确认对话框 -->
+    <transition name="fade">
+      <div v-if="photoToDelete" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-6"
+           @click="photoToDelete = null">
+        <div class="bg-dark-100 rounded-2xl p-6 max-w-sm w-full" @click.stop>
+          <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-red-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+              </svg>
+            </div>
+            
+            <h3 class="text-xl font-bold text-white mb-2">确认删除照片</h3>
+            <p class="text-white/70">
+              删除后将无法恢复此照片的所有数据，包括分数和对战记录。确定要继续吗？
+            </p>
+          </div>
+          
+          <div class="flex space-x-3">
+            <button
+              @click="photoToDelete = null"
+              class="flex-1 btn-secondary"
+            >
+              取消
+            </button>
+            
+            <button
+              @click="handleDeletePhoto"
+              class="flex-1 bg-red-600 text-white font-medium py-3 px-6 rounded-xl
+                     transition-all hover:bg-red-700 active:scale-95"
+            >
+              确认删除
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- 分享卡片弹窗 -->
+    <transition name="fade">
+      <div v-if="selectedPhoto" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-6"
+           @click="selectedPhoto = null">
+        <div class="bg-dark-100 rounded-2xl p-6 max-w-sm w-full" @click.stop>
+          <!-- 分享卡片预览 -->
+          <div ref="shareCardRef" class="bg-gradient-to-br from-dark-200 to-dark-300 rounded-xl p-6 mb-6 relative overflow-hidden">
+            <!-- 装饰背景 -->
+            <div class="absolute inset-0 opacity-10">
+              <div class="absolute -right-12 -top-12 w-48 h-48 bg-primary/30 rounded-full blur-2xl"></div>
+              <div class="absolute -left-12 -bottom-12 w-48 h-48 bg-primary/20 rounded-full blur-2xl"></div>
+            </div>
+            
+            <!-- 内容区域 -->
+            <div class="relative">
+              <div class="aspect-square rounded-xl overflow-hidden mb-4 shadow-lg">
+                <img
+                  :src="selectedPhoto?.url"
+                  :alt="'照片 ' + selectedPhoto?.id"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+              
+              <div class="space-y-4">
+                <!-- 评分 -->
+                <div class="flex justify-between items-center bg-dark-100/50 rounded-lg p-3">
+                  <span class="text-white/70">颜值评分</span>
+                  <div class="flex items-baseline">
+                    <span class="text-primary text-2xl font-bold">{{ formatRating(selectedPhoto?.eloScore) }}</span>
+                    <span class="text-white/50 ml-1">分</span>
+                  </div>
+                </div>
+                
+                <!-- 数据统计 -->
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="bg-dark-100/50 rounded-lg p-3">
+                    <div class="text-white/70 text-sm mb-1">PK次数</div>
+                    <div class="text-white font-medium">{{ selectedPhoto?.totalMatches }}次</div>
+                  </div>
+                  
+                  <div class="bg-dark-100/50 rounded-lg p-3">
+                    <div class="text-white/70 text-sm mb-1">胜率</div>
+                    <div class="text-white font-medium">{{ Math.round((selectedPhoto?.wins / selectedPhoto?.totalMatches) * 100) || 0 }}%</div>
+                  </div>
+                </div>
+
+                <!-- 二维码区域 -->
+                <div class="flex items-center justify-center pt-2">
+                  <div class="bg-white rounded-lg p-2">
+                    <QRCode 
+                      :value="shareUrl"
+                      :size="100"
+                      level="M"
+                      render-as="svg"
+                      :margin="0"
+                      class="w-full h-full"
+                    />
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-center space-x-2">
+                  <div class="h-[1px] flex-1 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+                  <div class="text-center text-xs text-white/50 px-3">比比谁更美</div>
+                  <div class="h-[1px] flex-1 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 操作按钮 -->
+          <div class="space-y-3">
+            <button
+              @click="downloadShareCard"
+              class="w-full bg-gradient-to-r from-primary to-primary-light text-white font-medium 
+                     py-3 px-6 rounded-xl flex items-center justify-center space-x-2
+                     transition-all hover:opacity-90 active:scale-95"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+              </svg>
+              <span>下载并分享</span>
+            </button>
+            
+            <button
+              @click="selectedPhoto = null"
+              class="w-full border border-white/10 text-white/70 font-medium py-3 px-6 rounded-xl
+                     transition-all hover:bg-white/5 active:scale-95"
+            >
+              取消
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -306,6 +410,8 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useNotificationStore } from '@/stores/notification'
+import html2canvas from 'html2canvas'
+import QRCode from 'qrcode.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -313,17 +419,64 @@ const notificationStore = useNotificationStore()
 
 const showSettings = ref(false)
 const showDeleteConfirm = ref(false)
+const showUploadDialog = ref(false)
+const photoToDelete = ref(null)
+const fileInput = ref(null)
 
 // 计算属性
 const user = computed(() => userStore.user)
 const userRating = computed(() => userStore.userRating)
 const userLevel = computed(() => userStore.userLevel)
 const userFuel = computed(() => userStore.userFuel)
+const userPhotos = computed(() => userStore.userPhotos)
+const bestPhoto = computed(() => userStore.bestPhoto)
 
-const winRate = computed(() => {
-  if (!user.value || user.value.totalMatches === 0) return 0
-  return Math.round((user.value.wins / user.value.totalMatches) * 100)
-})
+// 格式化评分
+const formatRating = (eloScore) => {
+  // 将Elo分数转换为1-10分制
+  let rating = 4.5 + (eloScore - 1200) / 200
+  if (eloScore >= 2200) rating = Math.min(10, 9.5 + (eloScore - 2200) / 200)
+  else if (eloScore >= 2000) rating = 8.5 + (eloScore - 2000) / 133.33
+  else if (eloScore >= 1800) rating = 7.5 + (eloScore - 1800) / 200
+  else if (eloScore >= 1600) rating = 6.5 + (eloScore - 1600) / 200
+  else if (eloScore >= 1400) rating = 5.5 + (eloScore - 1400) / 200
+  return rating.toFixed(1)
+}
+
+// 处理文件选择
+const handleFileSelect = async (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    try {
+      // 这里应该调用你的文件上传API
+      // 为了演示，我们使用本地URL
+      const photoUrl = URL.createObjectURL(file)
+      await userStore.addPhoto(photoUrl)
+      showUploadDialog.value = false
+      notificationStore.showSuccess('照片上传成功')
+    } catch (error) {
+      notificationStore.showError('照片上传失败')
+    }
+  }
+}
+
+// 确认删除照片
+const confirmDeletePhoto = (photo) => {
+  photoToDelete.value = photo
+}
+
+// 处理删除照片
+const handleDeletePhoto = () => {
+  if (photoToDelete.value) {
+    const success = userStore.deletePhoto(photoToDelete.value.id)
+    if (success) {
+      notificationStore.showSuccess('照片已删除')
+    } else {
+      notificationStore.showError('必须保留至少一张照片')
+    }
+    photoToDelete.value = null
+  }
+}
 
 // 生成模拟分数历史
 const scoreHistory = computed(() => {
@@ -372,6 +525,60 @@ const deleteAccount = () => {
   userStore.clearUser()
   notificationStore.showInfo('账户已删除')
   router.push('/')
+}
+
+// 加速照片
+const acceleratePhoto = (photo) => {
+  if (!userFuel.value) {
+    notificationStore.showError('燃料不足，无法加速')
+    return
+  }
+  
+  try {
+    // 这里应该调用加速API
+    // 为了演示，我们直接更新本地状态
+    photo.acceleration = (photo.acceleration || 0) + 1
+    notificationStore.showSuccess('加速成功')
+  } catch (error) {
+    notificationStore.showError('加速失败')
+  }
+}
+
+const selectedPhoto = ref(null)
+const shareCardRef = ref(null)
+
+// 打开分享卡片
+const openShareCard = (photo) => {
+  selectedPhoto.value = photo
+}
+
+// 生成分享链接
+const shareUrl = computed(() => {
+  if (!selectedPhoto.value) return ''
+  // 这里替换成实际的分享链接
+  return `${window.location.origin}/share/${selectedPhoto.value.id}`
+})
+
+// 下载分享卡片
+const downloadShareCard = async () => {
+  if (!shareCardRef.value) return
+  
+  try {
+    const canvas = await html2canvas(shareCardRef.value, {
+      backgroundColor: null,
+      scale: 2, // 提高导出图片质量
+    })
+    
+    const link = document.createElement('a')
+    link.download = `颜值PK-${formatRating(selectedPhoto.value?.eloScore)}分.png`
+    link.href = canvas.toDataURL('image/png')
+    link.click()
+    
+    selectedPhoto.value = null
+    notificationStore.showSuccess('图片已保存')
+  } catch (error) {
+    notificationStore.showError('保存失败')
+  }
 }
 </script>
 

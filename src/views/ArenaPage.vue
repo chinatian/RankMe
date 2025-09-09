@@ -4,41 +4,55 @@
     <div class="flex-shrink-0 p-4 bg-dark-100/50 backdrop-blur-sm border-b border-dark-300">
       <div class="flex items-center justify-between">
         <!-- 返回按钮 -->
-        <button
+       
+        <!-- <button
           @click="$router.back()"
           class="p-2 text-white/70 hover:text-white transition-colors"
         >
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
           </svg>
-        </button>
+        </button> -->
+
+        <!-- 品牌词 -->
+        <div class="">
+          <h1 class="text-white font-bold text-lg">比比谁更美</h1>
+        </div>
         
         <!-- 状态信息 -->
         <div class="flex items-center space-x-4 text-sm">
-          <!-- 燃料显示 -->
-          <div class="flex items-center space-x-1 text-yellow-400">
-            <span>⚡</span>
-            <span>{{ userFuel }}</span>
-          </div>
+         
           
-          <!-- 今日投票数 -->
-          <div class="flex items-center space-x-1 text-blue-400">
-            <span>🗳️</span>
-            <span>{{ todayVotes }}</span>
-          </div>
-          
-          <!-- 用户菜单 -->
+         
+
+          <!-- 排行榜按钮 -->
+          <button
+            @click="$router.push('/leaderboard')" 
+            class="flex items-center space-x-1 text-purple-400"
+          >
+            <span>🏆</span>
+            <span>排行榜</span>
+          </button>
+
           <button
             @click="$router.push('/profile')"
-            class="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center"
+            class="px-4 py-2 bg-gradient-primary rounded-full flex items-center justify-center space-x-1.5
+                   shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-200
+                   active:scale-95 hover:-translate-y-0.5"
           >
-            <span class="text-white text-sm font-bold">{{ userLevel.level }}</span>
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M12 4v16m8-8H4"></path>
+            </svg>
+            <span class="text-white text-sm font-bold">颜值打分</span>
           </button>
+          
+         
         </div>
       </div>
       
       <!-- 进度条（新手引导） -->
-      <div v-if="userStore.votesNeeded > 0" class="mt-3">
+      <div v-if="userStore.votesNeeded > 0 && false" class="mt-3">
         <div class="flex items-center justify-between text-xs text-white/70 mb-1">
           <span>解锁分数进度</span>
           <span>{{ 10 - userStore.votesNeeded }}/10</span>
@@ -52,37 +66,125 @@
       </div>
     </div>
     
+    
+    
     <!-- 主要内容区域 -->
-    <div class="flex-1 flex flex-col">
-      <!-- 比赛区域 -->
-      <div v-if="currentMatch && !isLoading" class="flex-1 flex flex-col">
-        <!-- VS指示器 -->
-        <div class="flex-shrink-0 text-center py-4">
-          <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-primary rounded-full">
-            <span class="text-white font-bold text-lg">VS</span>
+    <div class="flex-1 flex flex-col h-full items-center justify-center">
+
+      <!-- 专场选择 -->
+    <div class="flex-shrink-0 p-4 bg-dark-100/30">
+      <div class="flex justify-center">
+        <div class="flex space-x-2 overflow-visible pb-2 max-w-md relative">
+          <!-- 默认显示当前分类 -->
+          <div class="flex items-center space-x-2 relative">
+            <button
+              class="px-4 py-2 rounded-full text-sm font-medium bg-gradient-primary text-white"
+            >
+              {{ currentCategoryDisplay }}
+            </button>
+            
+            <!-- 更多按钮 -->
+            <button
+              @click="toggleCategoryDropdown"
+              class="px-3 py-2 rounded-full text-sm font-medium bg-dark-200 text-white/70 hover:text-white category-trigger"
+            >
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+              </svg>
+            </button>
+
+            <!-- 分类下拉菜单 -->
+            <div
+              v-show="showCategoryDropdown"
+              class="absolute top-full left-0 mt-2 w-64 bg-dark-100/95 rounded-xl shadow-lg shadow-black/50 backdrop-blur-lg z-50 category-dropdown"
+              style="min-width: 240px;"
+            >
+              <div class="py-2">
+                <div
+                  v-for="category in categories"
+                  :key="category.id"
+                  class="mb-2 last:mb-0"
+                >
+                  <!-- 主分类 -->
+                  <div 
+                    class="px-4 py-2 text-white font-medium text-sm border-b border-white/10 bg-dark-200/50"
+                  >
+                    {{ category.name }}
+                  </div>
+                  <!-- 子分类 -->
+                  <div class="py-1">
+                    <button
+                      v-for="subCategory in category.subcategories"
+                      :key="subCategory.id"
+                      @click="selectCategory(category.id, subCategory.id)"
+                      class="w-full px-6 py-2 text-left text-sm transition-colors duration-200 flex items-center space-x-2"
+                      :class="[
+                        currentMainCategory === category.id && currentSubCategory === subCategory.id
+                          ? 'bg-gradient-primary text-white'
+                          : 'text-white/70 hover:text-white hover:bg-dark-200/50'
+                      ]"
+                    >
+                      <span class="w-1.5 h-1.5 rounded-full" :class="[
+                        currentMainCategory === category.id && currentSubCategory === subCategory.id
+                          ? 'bg-white'
+                          : 'bg-white/50'
+                      ]"></span>
+                      <span>{{ subCategory.name }}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        
+      </div>
+    </div>
+
+      <!-- 比赛区域 -->
+      <div v-if="currentMatch && !isLoading" class=" flex flex-col">
         <!-- 照片对决区域 -->
-        <div class="flex-1 flex flex-col">
-          <!-- 上方照片 -->
-          <div class="flex-1 relative" @click="vote(currentMatch.user1.id)">
+        <div class="flex-1 flex flex-col md:flex-row items-center justify-center relative p-2 md:p-4">
+          <!-- 上方/左侧照片 -->
+          <div 
+            class="w-[80vw] md:w-[400px] aspect-square relative" 
+            
+          >
             <div class="absolute inset-0 m-2">
-              <div class="photo-card h-full group cursor-pointer" :class="{ 'voting': isVoting }">
+              <div class="photo-card h-full group relative">
                 <img
                   :src="currentMatch.user1.photo"
                   :alt="currentMatch.user1.name"
-                  class="w-full h-full object-cover"
+                  class="w-full h-full object-cover rounded-2xl"
                   @error="handleImageError"
                 />
                 
-                <!-- 选择遮罩 -->
-                <div class="absolute inset-0 bg-gradient-primary/0 group-hover:bg-gradient-primary/20 transition-all duration-300 flex items-center justify-center">
-                  <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                      <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
-                      </svg>
+                <!-- 投诉按钮 - 从点击区域中分离出来 -->
+                <div class="absolute top-4 right-4 z-10">
+                  <button
+                    @click.stop="openReportDialog(currentMatch.user1.id)"
+                    class="w-8 h-8 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm
+                           hover:bg-black/70 transition-colors"
+                  >
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </button>
+                </div>
+                
+                <!-- 投票点击区域 - 独立的层 -->
+                <div 
+                  class="absolute inset-0 cursor-pointer"
+                  @click="vote(currentMatch.user1.id)"
+                >
+                  <!-- 选择遮罩 -->
+                  <div class="absolute inset-0 bg-gradient-primary/0 group-hover:bg-gradient-primary/20 transition-all duration-300 flex items-center justify-center rounded-2xl">
+                    <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                        </svg>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -94,28 +196,55 @@
               </div>
             </div>
           </div>
+
+          <!-- VS指示器 -->
+          <div class="flex-shrink-0 mx-4 md:mx-8 my-2 md:my-4">
+            <div class="w-10 h-10 md:w-16 md:h-16 bg-gradient-primary rounded-full flex items-center justify-center">
+              <span class="text-white font-bold text-base md:text-lg">VS</span>
+            </div>
+          </div>
           
-          <!-- 中间分割线 -->
-          <div class="flex-shrink-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent mx-8"></div>
-          
-          <!-- 下方照片 -->
-          <div class="flex-1 relative" @click="vote(currentMatch.user2.id)">
+          <!-- 下方/右侧照片 -->
+          <div 
+            class="w-[80vw] md:w-[400px] aspect-square relative" 
+            
+          >
             <div class="absolute inset-0 m-2">
-              <div class="photo-card h-full group cursor-pointer" :class="{ 'voting': isVoting }">
+              <div class="photo-card h-full group relative">
                 <img
                   :src="currentMatch.user2.photo"
                   :alt="currentMatch.user2.name"
-                  class="w-full h-full object-cover"
+                  class="w-full h-full object-cover rounded-2xl"
                   @error="handleImageError"
                 />
                 
-                <!-- 选择遮罩 -->
-                <div class="absolute inset-0 bg-gradient-primary/0 group-hover:bg-gradient-primary/20 transition-all duration-300 flex items-center justify-center">
-                  <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                      <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
-                      </svg>
+                <!-- 投诉按钮 - 从点击区域中分离出来 -->
+                <div class="absolute top-4 right-4 z-10">
+                  <button
+                    @click.stop="openReportDialog(currentMatch.user2.id)"
+                    class="w-8 h-8 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm
+                           hover:bg-black/70 transition-colors"
+                  >
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </button>
+                </div>
+                
+                <!-- 投票点击区域 - 独立的层 -->
+                <div 
+                  class="absolute inset-0 cursor-pointer"
+                  @click="vote(currentMatch.user2.id)"
+                >
+                  <!-- 选择遮罩 -->
+                  <div class="absolute inset-0 bg-gradient-primary/0 group-hover:bg-gradient-primary/20 transition-all duration-300 flex items-center justify-center rounded-2xl">
+                    <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                        </svg>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -130,24 +259,22 @@
         </div>
         
         <!-- 底部操作栏 -->
-        <div class="flex-shrink-0 p-4 flex justify-center space-x-4">
+        <div class="flex-shrink-0 p-4 flex flex-col justify-center space-x-4 justify-center items-center">
           <button
             @click="skipMatch"
-            class="btn-secondary"
+            class="btn-secondary md:w-[100px]"
             :disabled="isVoting"
           >
             跳过
           </button>
           
-          <div class="text-center text-white/60 text-sm">
-            选择你认为更有魅力的一张
-          </div>
+          
         </div>
       </div>
       
       <!-- 加载状态 -->
-      <div v-else-if="isLoading" class="flex-1 flex items-center justify-center">
-        <div class="text-center">
+      <div v-else class="flex-1 flex items-center justify-center">
+        <div class="text-center flex flex-col items-center justify-center">
           <div class="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mb-4 animate-pulse">
             <svg class="w-8 h-8 text-white animate-spin" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -157,54 +284,12 @@
           <p class="text-white/70">正在准备对决...</p>
         </div>
       </div>
-      
-      <!-- 无法投票状态 -->
-      <div v-else class="flex-1 flex items-center justify-center p-6">
-        <div class="text-center max-w-sm">
-          <div class="w-20 h-20 bg-dark-200 rounded-full flex items-center justify-center mb-6 mx-auto">
-            <span class="text-4xl">⚡</span>
-          </div>
-          
-          <h3 class="text-xl font-bold text-white mb-2">燃料不足</h3>
-          <p class="text-white/70 mb-6 leading-relaxed">
-            你需要更多燃料来参与投票。通过以下方式获得燃料：
-          </p>
-          
-          <div class="space-y-3 mb-6">
-            <div class="bg-dark-200 rounded-lg p-3 text-left">
-              <div class="flex items-center space-x-2">
-                <span class="text-green-400">✓</span>
-                <span class="text-white/90">每次被投票 +1 燃料</span>
-              </div>
-            </div>
-            <div class="bg-dark-200 rounded-lg p-3 text-left">
-              <div class="flex items-center space-x-2">
-                <span class="text-blue-400">ℹ</span>
-                <span class="text-white/90">分享给朋友增加曝光</span>
-              </div>
-            </div>
-          </div>
-          
-          <button
-            @click="$router.push('/profile')"
-            class="btn-primary w-full"
-          >
-            查看我的状态
-          </button>
-        </div>
-      </div>
     </div>
-    
-    <!-- 投票成功动画 -->
-    <transition name="vote-success">
-      <div v-if="showVoteSuccess" class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-        <div class="bg-gradient-primary rounded-2xl p-6 text-center animate-bounce-in">
-          <div class="text-4xl mb-2">🎉</div>
-          <div class="text-white font-bold text-lg">投票成功！</div>
-          <div class="text-white/80">+5 燃料</div>
-        </div>
-      </div>
-    </transition>
+    <ReportDialog
+      :show="showReportDialog"
+      :image-id="reportImageId"
+      @close="closeReportDialog"
+    />
   </div>
 </template>
 
@@ -214,14 +299,20 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useArenaStore } from '@/stores/arena'
 import { useNotificationStore } from '@/stores/notification'
+import ReportDialog from '@/components/ReportDialog.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
 const arenaStore = useArenaStore()
 const notificationStore = useNotificationStore()
 
+// 响应式状态
 const isLoading = ref(true)
-const showVoteSuccess = ref(false)
+const showCategoryDropdown = ref(false)
+const currentMainCategory = ref('normal')
+const currentSubCategory = ref('normal_female')
+const showReportDialog = ref(false)
+const reportImageId = ref(null)
 
 // 计算属性
 const currentMatch = computed(() => arenaStore.currentMatch)
@@ -229,6 +320,63 @@ const isVoting = computed(() => arenaStore.isVoting)
 const userFuel = computed(() => userStore.userFuel)
 const userLevel = computed(() => userStore.userLevel)
 const todayVotes = computed(() => arenaStore.todayVotes)
+
+// 分类相关
+const categories = [
+  {
+    id: 'normal',
+    name: '素人',
+    subcategories: [
+      { id: 'normal_female', name: '女生' },
+      { id: 'normal_male', name: '男生' },
+    ]
+  },
+  {
+    id: 'celebrity',
+    name: '明星',
+    subcategories: [
+      { id: 'celebrity_female', name: '女生' },
+      { id: 'celebrity_male', name: '男生' },
+    ]
+  },
+  {
+    id: 'ai',
+    name: 'AI',
+    subcategories: [
+      { id: 'ai_female', name: '女生' },
+      { id: 'ai_male', name: '男生' },
+    ]
+  }
+]
+
+const currentCategoryDisplay = computed(() => {
+  const mainCategory = categories.find(c => c.id === currentMainCategory.value)
+  const subCategory = mainCategory?.subcategories.find(s => s.id === currentSubCategory.value)
+  return `${mainCategory?.name} · ${subCategory?.name}`
+})
+
+const toggleCategoryDropdown = () => {
+  console.log('Toggling dropdown, current state:', showCategoryDropdown.value)
+  showCategoryDropdown.value = !showCategoryDropdown.value
+  console.log('New state:', showCategoryDropdown.value)
+}
+
+const selectCategory = (mainCategoryId, subCategoryId) => {
+  currentMainCategory.value = mainCategoryId
+  currentSubCategory.value = subCategoryId
+  showCategoryDropdown.value = false
+  generateNewMatch(subCategoryId)
+}
+
+const handleClickOutside = (event) => {
+  if (showCategoryDropdown.value) {
+    const dropdown = document.querySelector('.category-dropdown')
+    const trigger = document.querySelector('.category-trigger')
+    if (dropdown && !dropdown.contains(event.target) && trigger && !trigger.contains(event.target)) {
+      showCategoryDropdown.value = false
+    }
+  }
+}
 
 // 格式化分数显示
 const formatScore = (eloScore) => {
@@ -240,29 +388,18 @@ const formatScore = (eloScore) => {
   return `${Math.max(1, 4.5 + (eloScore - 1200) / 200).toFixed(1)}★`
 }
 
-// 投票
+// 修改投票方法
 const vote = async (winnerId) => {
   if (!currentMatch.value || isVoting.value) return
   
   try {
+    // 保存当前比赛的引用，防止异步操作过程中被清空
+    const currentMatchSnapshot = { ...currentMatch.value }
+    
     const result = await arenaStore.vote(winnerId)
     
-    // 显示成功动画
-    showVoteSuccess.value = true
-    setTimeout(() => {
-      showVoteSuccess.value = false
-    }, 2000)
-    
-    // 显示分数变化通知
-    if (result.scoreChanges) {
-      const change = winnerId === currentMatch.value.user1.id 
-        ? result.scoreChanges.winner 
-        : result.scoreChanges.loser
-      
-      if (change !== 0) {
-        notificationStore.showFuelReward(5)
-      }
-    }
+    // 显示成功通知
+    notificationStore.showSuccess('投票成功！', '🎉 +5 燃料')
     
     // 等待一小段时间后生成新比赛
     setTimeout(() => {
@@ -271,7 +408,6 @@ const vote = async (winnerId) => {
     
   } catch (error) {
     console.error('投票失败:', error)
-    notificationStore.showError('投票失败，请重试')
   }
 }
 
@@ -282,20 +418,30 @@ const skipMatch = () => {
 }
 
 // 生成新比赛
-const generateNewMatch = () => {
+const generateNewMatch = (categoryId = currentSubCategory.value) => {
   if (!arenaStore.canVote) {
     return
   }
   
   isLoading.value = true
   
+  // 确保清除当前比赛
+  currentMatch.value = null
+  
   // 模拟网络延迟
   setTimeout(() => {
-    const match = arenaStore.generateMatch()
-    isLoading.value = false
-    
-    if (!match) {
-      notificationStore.showError('暂时没有可用的对决，请稍后再试')
+    try {
+      const match = arenaStore.generateMatch(categoryId)
+      if (!match) {
+        notificationStore.showError('暂时没有可用的对决，请稍后再试')
+        return
+      }
+      isLoading.value = false
+    } catch (error) {
+      console.error('生成比赛失败:', error)
+      notificationStore.showError('生成比赛失败，请刷新页面重试')
+    } finally {
+      isLoading.value = false
     }
   }, 500)
 }
@@ -303,6 +449,18 @@ const generateNewMatch = () => {
 // 处理图片加载错误
 const handleImageError = (event) => {
   event.target.src = '/placeholder-avatar.jpg'
+}
+
+// 打开投诉对话框
+const openReportDialog = (imageId) => {
+  reportImageId.value = imageId
+  showReportDialog.value = true
+}
+
+// 关闭投诉对话框
+const closeReportDialog = () => {
+  showReportDialog.value = false
+  reportImageId.value = null
 }
 
 // 初始化
@@ -340,10 +498,12 @@ const handleKeyPress = (event) => {
 
 onMounted(() => {
   document.addEventListener('keydown', handleKeyPress)
+  document.addEventListener('click', handleClickOutside)
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', handleKeyPress)
+  document.removeEventListener('click', handleClickOutside)
 })
 </script>
 
@@ -371,10 +531,12 @@ onBeforeUnmount(() => {
   }
 }
 
-/* 防止图片拖拽 */
-img {
-  -webkit-user-drag: none;
-  -moz-user-drag: none;
-  -ms-user-drag: none;
-  user-drag: none;
-}</style>
+/* 隐藏滚动条但保持可滚动 */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+</style>

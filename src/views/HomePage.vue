@@ -7,7 +7,7 @@
     </div>
     
     <!-- 主要内容 -->
-    <div class="relative z-10 text-center max-w-md w-full">
+    <div class="relative z-10 text-center max-w-[500px] w-full">
       <!-- Logo和标题 -->
       <div class="mb-12">
         <h1 class="text-5xl font-bold text-white mb-4 text-shadow">
@@ -50,23 +50,6 @@
       
       <!-- 操作按钮 -->
       <div class="space-y-4">
-        <button
-          @click="startJourney"
-          class="w-full bg-white text-primary-600 font-bold py-4 px-8 rounded-2xl text-lg
-                 shadow-2xl transform transition-all duration-200 active:scale-95 
-                 hover:shadow-3xl disabled:opacity-50 disabled:cursor-not-allowed"
-          :disabled="isLoading"
-        >
-          <span v-if="!isLoading">{{ hasUser ? '继续挑战' : '上传照片，开始挑战' }}</span>
-          <span v-else class="flex items-center justify-center">
-            <svg class="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            加载中...
-          </span>
-        </button>
-        
         <!-- 如果用户已存在，显示快速进入选项 -->
         <div v-if="hasUser" class="flex space-x-3">
           <button
@@ -78,13 +61,32 @@
           </button>
           
           <button
-            @click="$router.push('/profile')"
+            @click="$router.push('/upload')"
             class="flex-1 bg-white/10 text-white font-medium py-3 px-6 rounded-xl
                    border border-white/20 transition-all duration-200 hover:bg-white/20 active:scale-95"
           >
-            查看分数
+            上传照片
           </button>
         </div>
+        
+        <!-- 新用户按钮 -->
+        <button
+          v-else
+          @click="$router.push('/upload')"
+          class="w-full bg-white text-primary-600 font-bold py-4 px-8 rounded-2xl text-lg
+                 shadow-2xl transform transition-all duration-200 active:scale-95 
+                 hover:shadow-3xl disabled:opacity-50 disabled:cursor-not-allowed"
+          :disabled="isLoading"
+        >
+          <span v-if="!isLoading">上传照片，开始挑战</span>
+          <span v-else class="flex items-center justify-center">
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            加载中...
+          </span>
+        </button>
         
         <!-- 排行榜入口 -->
         <button
@@ -131,12 +133,10 @@ const startJourney = async () => {
   
   try {
     if (hasUser.value) {
-      // 已有用户，检查是否需要新手引导
-      if (userStore.user.needsOnboarding) {
-        router.push('/onboarding')
-      } else {
-        router.push('/arena')
-      }
+     
+     
+      router.push('/arena')
+      
     } else {
       // 新用户，前往上传页面
       router.push('/upload')

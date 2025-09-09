@@ -503,7 +503,7 @@ const completeUpload = async () => {
     notificationStore.showSuccess('照片上传成功！开始你的颜值PK之旅吧')
     
     // 跳转到新手引导
-    router.push('/onboarding')
+    router.push('/arena')
     
   } catch (error) {
     console.error('上传失败:', error)

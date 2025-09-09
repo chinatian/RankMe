@@ -5,7 +5,7 @@ const routes = [
   {
     path: '/',
     name: 'Home',
-    component: () => import('@/views/HomePage.vue'),
+    component: () => import('@/views/ArenaPage.vue'),
     meta: { 
       title: '颜值PK - 开始挑战',
       transition: 'fade'

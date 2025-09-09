@@ -1,14 +1,35 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { generateUserPhotos } from '@/utils/demoData'
 
 export const useUserStore = defineStore('user', () => {
   // 状态
-  const user = ref(null)
+  const user = ref({
+    id: 'demo_user',
+    photos: generateUserPhotos(3), // 生成3张模拟照片
+    fuel: 50,
+    rank: 123,
+    needsOnboarding: false,
+    badges: [],
+    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    lastActiveAt: new Date().toISOString(),
+    totalVotes: 150,
+    totalMatches: 100,
+    wins: 60,
+    losses: 40
+  })
   const isLoading = ref(false)
   
   // 计算属性
   const hasUser = computed(() => user.value !== null)
-  const userScore = computed(() => user.value?.eloScore || 1500)
+  const userPhotos = computed(() => user.value?.photos || [])
+  const bestPhoto = computed(() => {
+    if (!userPhotos.value.length) return null
+    return userPhotos.value.reduce((best, current) => 
+      (current.eloScore > best.eloScore) ? current : best
+    )
+  })
+  const userScore = computed(() => bestPhoto.value?.eloScore || 1500)
   const userRating = computed(() => {
     // 将Elo分数转换为1-10分制
     const elo = userScore.value
@@ -51,15 +72,19 @@ export const useUserStore = defineStore('user', () => {
   const createUser = (userData) => {
     const newUser = {
       id: Date.now().toString(),
-      photo: userData.photo,
-      eloScore: 1500, // 初始Elo分数
-      totalVotes: 0,
-      totalMatches: 0,
-      wins: 0,
-      losses: 0,
-      fuel: 0, // 燃料点数
+      photos: [{
+        id: Date.now().toString(),
+        url: userData.photo,
+        eloScore: 1500,
+        totalVotes: 0,
+        totalMatches: 0,
+        wins: 0,
+        losses: 0,
+        uploadedAt: new Date().toISOString()
+      }],
+      fuel: 50, // 给新用户50点燃料
       rank: null,
-      needsOnboarding: true,
+      needsOnboarding: false,
       badges: [],
       createdAt: new Date().toISOString(),
       lastActiveAt: new Date().toISOString(),
@@ -199,6 +224,58 @@ export const useUserStore = defineStore('user', () => {
       saveUser()
     }
   }
+
+  // 添加新照片
+  const addPhoto = (photoUrl) => {
+    if (user.value) {
+      const newPhoto = {
+        id: Date.now().toString(),
+        url: photoUrl,
+        eloScore: 1500,
+        totalVotes: 0,
+        totalMatches: 0,
+        wins: 0,
+        losses: 0,
+        uploadedAt: new Date().toISOString()
+      }
+      user.value.photos.push(newPhoto)
+      saveUser()
+      return newPhoto
+    }
+    return null
+  }
+
+  // 更新照片分数
+  const updatePhotoEloScore = (photoId, newScore, won, opponentScore) => {
+    if (user.value) {
+      const photo = user.value.photos.find(p => p.id === photoId)
+      if (photo) {
+        const oldScore = photo.eloScore
+        photo.eloScore = Math.round(newScore)
+        photo.totalMatches += 1
+        
+        if (won) {
+          photo.wins += 1
+        } else {
+          photo.losses += 1
+        }
+        
+        // 检查是否达成新成就
+        checkAchievements(oldScore, newScore, won, opponentScore)
+        saveUser()
+      }
+    }
+  }
+
+  // 删除照片
+  const deletePhoto = (photoId) => {
+    if (user.value && user.value.photos.length > 1) {
+      user.value.photos = user.value.photos.filter(p => p.id !== photoId)
+      saveUser()
+      return true
+    }
+    return false
+  }
   
   return {
     // 状态
@@ -213,6 +290,8 @@ export const useUserStore = defineStore('user', () => {
     userFuel,
     votesNeeded,
     userLevel,
+    userPhotos,
+    bestPhoto,
     
     // 动作
     initializeUser,
@@ -220,10 +299,12 @@ export const useUserStore = defineStore('user', () => {
     updateUser,
     addFuel,
     consumeFuel,
-    updateEloScore,
+    updateEloScore: updatePhotoEloScore, // 替换为新的照片分数更新方法
     addVote,
     saveUser,
     clearUser,
-    completeOnboarding
+    completeOnboarding,
+    addPhoto,
+    deletePhoto
   }
 })

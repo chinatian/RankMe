@@ -17,8 +17,8 @@ export const useArenaStore = defineStore('arena', () => {
   // 计算属性
   const canVote = computed(() => {
     const userStore = useUserStore()
-    // 用户需要有足够的燃料或者是新手
-    return userStore.userFuel > 0 || userStore.votesNeeded > 0
+    // 用户需要有足够的燃料或者是新手引导阶段
+    return userStore.userFuel > 0 || (userStore.user?.needsOnboarding && userStore.votesNeeded > 0)
   })
   
   const votesUntilReward = computed(() => {
@@ -44,9 +44,10 @@ export const useArenaStore = defineStore('arena', () => {
   }
   
   // 根据Elo分数匹配对手
-  const findMatchingOpponents = (userScore, excludeIds = []) => {
+  const findMatchingOpponents = (userScore, excludeIds = [], category = 'normal_female') => {
     const availableUsers = allUsers.value.filter(user => 
-      !excludeIds.includes(user.id)
+      !excludeIds.includes(user.id) &&
+      `${user.mainCategory}_${user.subCategory}` === category
     )
     
     if (availableUsers.length < 2) return null
@@ -62,6 +63,8 @@ export const useArenaStore = defineStore('arena', () => {
     const topCandidates = sortedUsers.slice(0, Math.min(6, sortedUsers.length))
     const shuffled = topCandidates.sort(() => Math.random() - 0.5)
     
+    if (shuffled.length < 2) return null
+    
     return {
       user1: shuffled[0],
       user2: shuffled[1]
@@ -69,7 +72,7 @@ export const useArenaStore = defineStore('arena', () => {
   }
   
   // 动作
-  const generateMatch = () => {
+  const generateMatch = (category = 'normal_female') => {
     const userStore = useUserStore()
     
     if (!canVote.value) {
@@ -81,19 +84,21 @@ export const useArenaStore = defineStore('arena', () => {
       .slice(-10)
       .flatMap(match => [match.user1.id, match.user2.id])
     
-    const match = findMatchingOpponents(userStore.userScore, recentUserIds)
+    const match = findMatchingOpponents(userStore.userScore, recentUserIds, category)
     
     if (match) {
       currentMatch.value = {
         ...match,
         id: Date.now().toString(),
-        startTime: Date.now()
+        startTime: Date.now(),
+        category
       }
     }
     
     return currentMatch.value
   }
   
+  // 投票
   const vote = async (winnerId) => {
     if (!currentMatch.value || isVoting.value) return
     
@@ -101,6 +106,23 @@ export const useArenaStore = defineStore('arena', () => {
     const userStore = useUserStore()
     
     try {
+      // 检查用户是否已初始化
+      if (!userStore.hasUser) {
+        throw new Error('请先登录')
+      }
+
+      // 检查是否可以投票
+      if (!canVote.value) {
+        throw new Error('燃料不足')
+      }
+
+      // 如果不是新手引导阶段，消耗燃料
+      if (!userStore.user?.needsOnboarding || userStore.votesNeeded <= 0) {
+        if (!userStore.consumeFuel(1)) {
+          throw new Error('燃料不足')
+        }
+      }
+
       const { user1, user2 } = currentMatch.value
       const winner = winnerId === user1.id ? user1 : user2
       const loser = winnerId === user1.id ? user2 : user1
@@ -109,7 +131,7 @@ export const useArenaStore = defineStore('arena', () => {
       const winnerEloChange = calculateEloChange(winner.eloScore, loser.eloScore, true)
       const loserEloChange = calculateEloChange(loser.eloScore, winner.eloScore, false)
       
-      // 更新用户分数（在实际应用中应该发送到后端）
+      // 更新用户分数
       winner.eloScore = winnerEloChange.newScore
       loser.eloScore = loserEloChange.newScore
       
@@ -157,7 +179,6 @@ export const useArenaStore = defineStore('arena', () => {
       return voteRecord
       
     } catch (error) {
-      console.error('投票失败:', error)
       throw error
     } finally {
       isVoting.value = false
