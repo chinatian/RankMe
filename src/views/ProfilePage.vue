@@ -711,7 +711,7 @@ const downloadShareCard = async () => {
 
 .share-card-stat-label {
   color: rgba(255, 255, 255, 0.7);
-  font-size: 14px;
+  font-size: 0.6em;
   margin-bottom: 4px;
 }
 

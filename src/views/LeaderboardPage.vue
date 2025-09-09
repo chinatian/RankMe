@@ -3,7 +3,8 @@
     <!-- 顶部导航 -->
     <div class="flex-shrink-0 p-4 bg-dark-100/50 backdrop-blur-sm border-b border-dark-300">
       <div class="flex items-center justify-between  mx-auto">
-        <button
+        <div class="flex items-center space-x-2">
+           <button
           @click="$router.back()"
           class="p-2 text-white/70 hover:text-white transition-colors"
         >
@@ -13,6 +14,8 @@
         </button>
         
         <h1 class="text-xl font-bold text-white">排行榜</h1>
+        </div>
+       
         
         <button
           @click="refreshLeaderboard"

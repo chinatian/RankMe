@@ -107,7 +107,7 @@
                 >
                   <!-- 主分类 -->
                   <div 
-                    class="px-4 py-2 text-white font-medium text-sm border-b border-white/10 bg-dark-200/50"
+                    class="px-4 py-2 text-white font-medium text-sm border-b border-white/10 "
                   >
                     {{ category.name }}
                   </div>
@@ -275,7 +275,7 @@
       <!-- 加载状态 -->
       <div v-else class="flex-1 flex items-center justify-center">
         <div class="text-center flex flex-col items-center justify-center">
-          <div class="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mb-4 animate-pulse">
+          <div class="w-16 h-16 rounded-full flex items-center justify-center mb-4 animate-pulse">
             <svg class="w-8 h-8 text-white animate-spin" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
